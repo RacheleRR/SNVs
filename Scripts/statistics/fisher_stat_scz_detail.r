@@ -56,7 +56,7 @@ library(ggplot2)
 
 # LOAD PERSONAL DATA 
     # Specify the folder containing your TSV files
-    folder_path <- "/home/rachele/SNVs/results/euro"
+    folder_path <- "/home/rachele/SNVs/results/global"
 
     # List all the TSV files in the folder
     tsv_files <- list.files(path = folder_path, pattern = "\\.tsv$", full.names = TRUE)
@@ -231,6 +231,12 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     pred_PTV_pLI_VEP_filtered$sample_label_3 <- sapply(pred_PTV_pLI_VEP_filtered$sample_label_2,derive_group_label)
     pred_PTV_VEP_filtered$sample_label_3 <- sapply(pred_PTV_VEP_filtered$sample_label_2,derive_group_label)
 
+    pred_NON_patho_MPC_pLI_VEP_filtered <-pred_NON_patho_MPC_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_NON_patho_MPC_VEP_filtered <-pred_NON_patho_MPC_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_pLI_VEP_filtered <-pred_PTV_pLI_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_VEP_filtered <-pred_PTV_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
 
 # manifest for UHR_NA
     UHR_NA_SAMPLE_IDS <- read.csv("~/UHR_NA_SAMPLE_IDS.csv", sep="")
@@ -244,8 +250,13 @@ check_outlier_label <- function(outlier_value, manifest_df) {
 # CREATE DATAFRAME TO BE USED FOR STATISTICS 
     # Define a function to process each dataframe and return the result
     # This function processes the data to separate rows, clean up sample IDs, and filter based on specific gene sets
-    process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or) {
-
+    process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private= FALSE) {
+            
+            
+    if(private){
+        df <- df %>% filter(count == 1)  # Only filter if private=TRUE
+    }
+    
     #dataframe to count individuals 
     expanded_df <- df %>%
         separate_rows(SAMPLES, sep = ",") %>%  # Split SAMPLES only
@@ -635,12 +646,22 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     # View the final result
     print(final_result_df)
     # Process each dataframe and create separate result tables
-    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or )
-    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
+
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+
+
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+
 
 #when there is an NA put 0 
 final_result_df[is.na(final_result_df)] <-0
@@ -651,154 +672,8 @@ result_df_patho[is.na(result_df_patho)] <- 0
 result_df_PTV_pLI[is.na(result_df_PTV_pLI)] <- 0
 result_df_PTV[is.na(result_df_PTV)] <- 0
 
-# pairwise fisher variants 
 
-
-
-perform_pairwise_fisher <- function(result_df, row, group1, group2) {
-    # Get total counts for group1 and group2 from the first row
-    total_group1 <- result_df[1, group1]
-    total_group2 <- result_df[1, group2]
-    
-    # Get counts in the current row for each group
-    in_group1 <- result_df[row, group1]
-    in_group2 <- result_df[row, group2]
-    
-    # Calculate counts without the variant
-    out_group1 <- total_group1 - in_group1
-    out_group2 <- total_group2 - in_group2
-    
-    # Input validation
-    if (in_group1 < 0 || in_group2 < 0 || out_group1 < 0 || out_group2 < 0) {
-        stop("Invalid counts: Negative values detected")
-    }
-    if (in_group1 > total_group1 || in_group2 > total_group2) {
-        stop("Subgroup counts exceed total group counts")
-    }
-    
-    # Create contingency table
-    contingency_table <- matrix(
-        c(in_group1, out_group1,
-          in_group2, out_group2),
-        nrow = 2,
-        byrow = TRUE,
-        dimnames = list(
-            Group = c(group1, group2),
-            Variant = c("In Group", "Not In Group")
-        )
-    )
-    
-    # Auto-select test based on expected counts
-    expected <- suppressWarnings(chisq.test(contingency_table)$expected)
-    if (any(expected < 5)) {
-        test <- fisher.test(contingency_table)
-        method <- "Fisher"
-        odds_ratio <- test$estimate
-    } else {
-        test <- chisq.test(contingency_table)
-        method <- "ChiSq"
-        odds_ratio <- (contingency_table[1,1] / contingency_table[1,2]) / 
-                      (contingency_table[2,1] / contingency_table[2,2])
-    }
-    
-    return(list(
-        contingency_table = contingency_table,
-        p_value = test$p.value,
-        odds_ratio = odds_ratio,
-        method = method,
-        group1 = group1,
-        group2 = group2,
-        group1_in = in_group1,
-        group1_out = out_group1,
-        group2_in = in_group2,
-        group2_out = out_group2,
-        total_group1 = total_group1,
-        total_group2 = total_group2
-    ))
-}
-
-perform_pairwise_tests <- function(result_df, test_name) {
-    # Define rows to test and their corresponding names
-    rows <- c(4, 7, 10, 13, 16, 19)
-    row_names <- c("brain_variants", "brain_filter_ntpm_variants", "schema_pval_variants",
-                   "bipolar_variants", "sfari_non_syndromic_variants", "schema_or_variants")
-    
-    # Generate all possible group pairs
-    groups <- c("SCZ", "BD", "Converter", "Non_Converter")
-    group_pairs <- combn(groups, 2, simplify = FALSE)
-    
-    # Perform tests for each row and group pair
-    results <- lapply(seq_along(rows), function(i) {
-        row <- rows[i]
-        row_name <- row_names[i]
-        
-        # For each group pair, perform the test
-        pair_results <- lapply(group_pairs, function(pair) {
-            group1 <- pair[1]
-            group2 <- pair[2]
-            
-            # Perform the test
-            res <- tryCatch({
-                perform_pairwise_fisher(result_df, row, group1, group2)
-            }, error = function(e) {
-                return(NULL)  # Skip if error (e.g., invalid counts)
-            })
-            
-            if (is.null(res)) return(NULL)
-            
-            # Create a data frame with the results
-            data.frame(
-                Test = test_name,
-                Row = row_name,
-                Group1 = group1,
-                Group2 = group2,
-                Group1_In = res$group1_in,
-                Group1_Out = res$group1_out,
-                Group2_In = res$group2_in,
-                Group2_Out = res$group2_out,
-                OR = res$odds_ratio,
-                p_value = res$p_value,
-                Method = res$method,
-                Total_Group1 = res$total_group1,
-                Total_Group2 = res$total_group2,
-                stringsAsFactors = FALSE
-            )
-        })
-        
-        # Remove NULL results and combine
-        pair_results <- Filter(Negate(is.null), pair_results)
-        do.call(rbind, pair_results)
-    })
-    
-    # Combine all results into a single dataframe
-    do.call(rbind, results)
-}
-
-# Perform tests for all datasets
-results <- list(
-    NON_patho_pLI = perform_pairwise_tests(result_df_NON_patho_pLI, "NON_patho_pLI"),
-    NON_patho = perform_pairwise_tests(result_df_NON_patho, "NON_patho"),
-    patho_pLI = perform_pairwise_tests(result_df_patho_pLI, "patho_pLI"),
-    patho = perform_pairwise_tests(result_df_patho, "patho"),
-    PTV_pLI = perform_pairwise_tests(result_df_PTV_pLI, "PTV_pLI"),
-    PTV = perform_pairwise_tests(result_df_PTV, "PTV")
-)
-
-# Combine all results into a single dataframe
-final_results <- do.call(rbind, results)
-
-# Apply multiple testing corrections
-final_results$p_adj_global <- p.adjust(final_results$p_value, method = "fdr")
-final_results <- final_results %>%
-    group_by(Test) %>%  # Group by dataset
-    mutate(p_adj_per_test = p.adjust(p_value, method = "fdr")) %>%
-    ungroup()
-
-# View final results
-print(final_results)
-
-
-#pairwise fisher individuals 
+# pairwise fisher individuals 
 # Function to perform pairwise Fisher's exact tests between groups
 perform_pairwise_fisher_per_ind <- function(group1_count, group2_count, total_group1, total_group2) {
     # Input validation
@@ -933,112 +808,6 @@ pairwise_results_ind_df <- pairwise_results_ind_df %>%
 print(pairwise_results_ind_df)
 
 
-
-#pairwise fisher for case control (scz-bd-converter-nonconverter)
-# Modified function to create pairwise contingency tables
-create_pairwise_contingency_tables <- function(df) {
-    # Ensure variants are unique
-    df <- df %>% distinct(SYMBOL,CHROM, POS, REF, ALT, .keep_all = TRUE)
-    
-    # Get group labels
-    df$group <- sapply(df$sample_label_2, derive_group_label)
-    
-    # Define all groups
-    groups <- c("SCZ", "BD", "Converter", "Non_Converter")
-    
-    # Calculate total variants per group
-    group_counts <- sapply(groups, function(g) sum(df$group == g, na.rm = TRUE))
-    
-    # Create all possible group pairs
-    group_pairs <- combn(groups, 2, simplify = FALSE)
-    
-    # Create list of contingency tables for each pair
-    contingency_tables <- lapply(group_pairs, function(pair) {
-        g1 <- pair[1]
-        g2 <- pair[2]
-        
-        # Get variant counts for this gene set
-        in_g1 <- group_counts[g1]
-        in_g2 <- group_counts[g2]
-        
-        # Calculate "not in group" counts
-        not_g1 <- nrow(df) - in_g1
-        not_g2 <- nrow(df) - in_g2
-        
-        matrix(
-            c(in_g1, not_g1,
-              in_g2, not_g2),
-            nrow = 2,
-            byrow = TRUE,
-            dimnames = list(
-                Group = c(g1, g2),
-                Variant = c("In Group", "Not In Group")
-            )
-        )
-    })
-    
-    return(list(
-        tables = contingency_tables,
-        group_pairs = group_pairs,
-        total_variants = nrow(df)
-    ))
-}
-
-# Modified Fisher's test function for pairwise comparisons
-perform_pairwise_fisher_tests <- function(pred_df_list) {
-    # Process all dataframes
-    results <- lapply(names(pred_df_list), function(test_name) {
-        df <- pred_df_list[[test_name]]
-        res <- create_pairwise_contingency_tables(df)
-        
-        # Perform tests for each group pair
-        test_results <- lapply(seq_along(res$tables), function(i) {
-            table <- res$tables[[i]]
-            pair <- res$group_pairs[[i]]
-            
-            test <- fisher.test(table)
-            
-            data.frame(
-                Test = test_name,
-                Group1 = pair[1],
-                Group2 = pair[2],
-                Group1_Variants = table[1, 1],
-                Group2_Variants = table[2, 1],
-                OR = test$estimate,
-                CI_Low = test$conf.int[1],
-                CI_High = test$conf.int[2],
-                p_value = test$p.value,
-                Total_Variants = res$total_variants
-            )
-        })
-        
-        do.call(rbind, test_results)
-    })
-    
-    final_df <- do.call(rbind, results)
-    
-    # Add FDR correction
-    final_df %>%
-        group_by(Test) %>%
-        mutate(p_adj = p.adjust(p_value, method = "fdr")) %>%
-        ungroup()
-}
-
-pred_df_list <- list(
-NON_patho_pLI = pred_NON_patho_MPC_pLI_VEP_filtered,
-NON_patho = pred_NON_patho_MPC_VEP_filtered,
-patho_pLI = pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered,
-patho = pred_patho_MPC_ALPHAMISSENSE_VEP_filtered,
-PTV_pLI = pred_PTV_pLI_VEP_filtered,
-PTV = pred_PTV_VEP_filtered
-)
-
-# Run the analysis
-pairwise_results <- perform_pairwise_fisher_tests(pred_df_list)
-
-# Print formatted results
-print(pairwise_results)
-
 #rate comparison
 
 # Function to calculate carrier rates for all groups
@@ -1097,30 +866,6 @@ print(rate_confront_df)
 
 
 #visaluzation 
-
-volcano_plot_CC <- pairwise_results %>%
-    mutate(log_OR = log2(OR),
-           log_p = -log10(p_adj)) %>%
-    ggplot(aes(x = log_OR, y = log_p)) +
-    geom_point(aes(color = interaction(Group1, Group2), 
-                   shape = p_adj < 0.05), 
-               size = 3, alpha = 0.7) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_hline(yintercept = -log10(0.05), color = "red") +
-    ggrepel::geom_text_repel(
-        data = . %>% filter(p_adj < 0.05),
-        aes(label = paste(Test, "\n", Group1, "vs", Group2)),
-        max.overlaps = 20, size = 3
-    ) +
-
-    scale_color_viridis_d(option = "turbo") +
-    labs(title = "Pairwise Variant Associations",
-         x = "log2(Odds Ratio)",
-         y = "-log10(Global FDR p-value)",
-         color = "Group Comparison") +
-    theme_bw() +
-    theme(legend.position = "bottom")
-
 volcano_plot_ind <- pairwise_results_ind_df %>%
     mutate(log_OR = log2(OR),
            log_p = -log10(p_adj_per_test)) %>%
@@ -1164,28 +909,6 @@ volcano_plot_ind_all <- pairwise_results_ind_df %>%
        x = "log2(Odds Ratio)",
        y = "-log10(FDR-adjusted p-value)") +
   theme_bw()
-
-volcano_plot_V <- final_results %>%
-    mutate(
-        Comparison = paste(Group1, "vs", Group2),
-        # Only label significant points
-        Label = ifelse(p_adj_per_test < 0.05, Comparison, "")
-    ) %>%
-    ggplot(aes(x = log2(OR), y = -log10(p_adj_per_test))) +
-    geom_point(aes(color = Row, shape = Test), size = 3, alpha = 0.7) +
-    geom_label_repel(aes(label = Label),  # Auto-avoid overlaps
-                     box.padding = 0.5,
-                     max.overlaps = 20,
-                     size = 2.5,
-                     segment.color = "grey50") +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") + # +facet_grid(Test ~ ., scales = "free")
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "red") +
-    labs(title = "Volcano Plot: Effect Size vs. Significance",
-         x = "log2(Odds Ratio)",
-         y = "-log10(FDR-adjusted p-value)") +
-    theme_bw()
-
-
 
 matrix_plot_ind_OR <- pairwise_results_ind_df %>%
     mutate(Significance = case_when(
@@ -1285,10 +1008,9 @@ manhattan_plot_ind <- pairwise_results_ind_df %>%
 
 
 #view plots
-volcano_plot_CC
+
 volcano_plot_ind
 volcano_plot_ind_all
-volcano_plot_V
 dot_plot_ind
 manhattan_plot_ind
 matrix_plot_ind_OR
@@ -1296,14 +1018,13 @@ matrix_plot_ind_p
 
 
 #set working directry
-setwd("/home/rachele/SNVs/results/stats/euro")
+setwd("/home/rachele/SNVs/results/stats/global/non_private")
 
 
 # save plots 
-ggsave("volcano_plot_CC_SCZ.png", volcano_plot_CC, width = 8, height = 6)
+
 ggsave("volcano_plot_ind_SCZ.png", volcano_plot_ind, width = 8, height = 6)
 ggsave("volcano_plot_ind_all_SCZ.png", volcano_plot_ind_all, width = 8, height = 6)
-ggsave("volcano_plot_V_SCZ.png", volcano_plot_V, width = 8, height = 6)
 ggsave("matrix_plot_ind_OR_SCZ.png", matrix_plot_ind_OR, width = 8, height = 6)
 ggsave("matrix_plot_ind_p_SCZ.png", matrix_plot_ind_p, width = 8, height = 6)
 ggsave("parallel_plot_ind_SCZ.png", parallel_plot_ind, width = 8, height = 6)
@@ -1311,9 +1032,8 @@ ggsave("dot_plot_ind_SCZ.png", dot_plot_ind, width = 8, height = 6)
 ggsave("manhattan_plot_ind_SCZ.png", manhattan_plot_ind, width = 8, height = 6)
 
 #save final results
-write.csv(final_results, "fisher_variants_SCZ.csv", row.names = FALSE)
 write.csv(pairwise_results_ind_df, "fisher_individuals_SCZ.csv", row.names = FALSE)
 write.csv(rate_confront_df, "rate_confront_SCZ.csv", row.names = FALSE)
-write.csv(pairwise_results, "fisher_case_control_SCZ.csv", row.names = FALSE)
+
 
 
