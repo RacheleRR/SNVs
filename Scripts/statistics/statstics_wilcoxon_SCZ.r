@@ -62,7 +62,7 @@ SFARI <- read_csv("/home/rachele/Documents/old/geneset_confrontation/SFARI.csv")
 # LOAD MINE     
 # LOAD PERSONAL DATA 
     # Specify the folder containing your TSV files
-    folder_path <- "/home/rachele/SNVs/results/euro"
+    folder_path <- "/home/rachele/SNVs/results/global"
 
     # List all the TSV files in the folder
     tsv_files <- list.files(path = folder_path, pattern = "\\.tsv$", full.names = TRUE)
@@ -160,27 +160,6 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     return(df)
     }
 
-    derive_group_label <- function(sample_label_2) {
-    # Split the sample_label_2 by commas and trim whitespace
-    labels <- trimws(strsplit(sample_label_2, ",")[[1]])
-    
-    # Determine the group based on the labels
-    if (all(labels == "SCZ")) {
-        return("SCZ")
-    } else if (all(labels == "BD")) {
-        return("BD")
-    }   else if (all(labels == "Converter")) {
-        return("Converter") 
-    } else if (all(labels == "Non_Converter")) {
-        return("Non_Converter")
-
-    } else if (any(labels == "SCZ") && any(labels == "BD")&& any(labels == "Converter")&& any(labels == "Non_Converter")) {
-        return("mixed")
-    } else {
-        return(NA)  # If no valid labels are found
-    }
-    }
-
 
     derive_group_label <- function(sample_label_2) {
     # Split the sample_label_2 by commas and trim whitespace
@@ -238,6 +217,13 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     pred_PTV_pLI_VEP_filtered$sample_label_3 <- sapply(pred_PTV_pLI_VEP_filtered$sample_label_2,derive_group_label)
     pred_PTV_VEP_filtered$sample_label_3 <- sapply(pred_PTV_VEP_filtered$sample_label_2,derive_group_label)
 
+    pred_NON_patho_MPC_pLI_VEP_filtered <-pred_NON_patho_MPC_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_NON_patho_MPC_VEP_filtered <-pred_NON_patho_MPC_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_pLI_VEP_filtered <-pred_PTV_pLI_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_VEP_filtered <-pred_PTV_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    
     UHR_NA_SAMPLE_IDS <- read.csv("~/UHR_NA_SAMPLE_IDS.csv", sep="")
     #example S36827
 
@@ -245,8 +231,11 @@ colnames(manifest_correct) <- c("Status", "sample_id", "group")
 
 
 # stuff
-process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or) {
-    
+process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE) {
+
+    if(private){
+        df <- df %>% filter(count == 1)  # Only filter if private=TRUE
+    }    
     # Assume expanded_df is already created as per your code
    expanded_df <- df %>%
     separate_rows(SAMPLES, sep = ",") %>%
@@ -324,12 +313,20 @@ process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitu
 }
 
 # Create separate data frames for each call to process_df
-result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+
+
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or, private=TRUE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
 
 
 
@@ -367,10 +364,10 @@ complete_df_PTV <- manifest_correct %>%
 analyze_metrics_kruskal <- function(df, normalize = TRUE, df_name = NULL) {
   # Define group sizes
   total_individuals <- c(
-    SCZ = 229, 
+    SCZ = 222, 
     BD = 33,
-    Converter = 50,
-    Non_Converter = 78
+    Converter = 47,
+    Non_Converter = 75
   )
   
   # 1. Filter data
@@ -484,9 +481,7 @@ process_all_datasets <- function() {
   
   # Run analysis for each dataset (both normalized and raw)
   all_results <- map2_dfr(datasets, names, function(df, name) {
-    bind_rows(
-      analyze_metrics_kruskal(df, normalize = TRUE, df_name = name),
-      analyze_metrics_kruskal(df, normalize = FALSE, df_name = name)
+    bind_rows( analyze_metrics_kruskal(df, normalize = FALSE, df_name = name)
     )
   })
   
@@ -531,7 +526,7 @@ kruskal_only <- results_table %>%
 dunn_only <- results_table %>% 
   filter(!is.na(comparison))
 
-setwd("/home/rachele/SNVs/results/stats/euro")
+setwd("/home/rachele/SNVs/results/stats/global/private/kruskal")
 
 # Save the results to a CSV file
 write.csv(results_table, file = "results_table_kruskal_SCZ.csv", row.names = FALSE)
@@ -570,10 +565,10 @@ prepare_plot_data <- function(results_table, datasets) {
             df %>% 
                 group_by(Status) %>%
                 mutate(count = count/case_when(
-                    Status == "SCZ" ~ 229,
+                    Status == "SCZ" ~ 222,
                     Status == "BD" ~ 33,
-                    Status == "Converter" ~ 50,
-                    Status == "Non_Converter" ~ 78
+                    Status == "Converter" ~ 47,
+                    Status == "Non_Converter" ~ 75
                 )) %>%
                 ungroup() %>%
                 mutate(normalization = "TRUE")
@@ -704,112 +699,147 @@ non_normalized_plots <- all_plot_data %>%
   }, .keep = TRUE)
 
 
-normalized_plots <- all_plot_data %>%
-  filter(normalization == "TRUE") %>%
-  group_by(dataset, metric) %>%
-  group_map(~ {
-    create_boxplot_with_dunn(
-      plot_data = all_plot_data,
-      results_table = results_table,
-      dataset_name = .y$dataset,
-      metric_name = .y$metric,
-      is_normalized = TRUE
-    )
-  }, .keep = TRUE)
 
 
-
-
-# grid creation plots save 
-    # Set parameters
+# save plots 2 
+# Set parameters
     metrics_per_page <- 4
-    pause_time <- 5  # Seconds between pages
+    output_width <- 14  # inches
+    output_height <- 10 # inches
+
+    # Create a list to store all grids before saving
+    all_grids_non_normalized <- list()
 
     for(current_dataset in unique(all_plot_data$dataset)) {
-    
-    # Get all metrics for current dataset (non-normalized)
-    all_metrics <- all_plot_data %>%
-        filter(dataset == current_dataset, 
-            normalization == "FALSE") %>%
+      
+      # Get all metrics for current dataset (non-normalized)
+      all_metrics <- all_plot_data %>%
+        filter(dataset == current_dataset, normalization == "FALSE") %>%
         distinct(metric) %>%
         pull()
-    
-    # Split into chunks of 4 metrics
-    metric_chunks <- split(
+      
+      # Split into chunks of 4 metrics
+      metric_chunks <- split(
         all_metrics,
         ceiling(seq_along(all_metrics)/metrics_per_page)
-    )
-    
-    # Create and display each page
-    for(page_num in seq_along(metric_chunks)) {
+      )
+      
+      # Store grids for this dataset
+      dataset_grids <- list()
+      
+      for(page_num in seq_along(metric_chunks)) {
         
         # Create the 4 plots for this page
         page_plots <- lapply(metric_chunks[[page_num]], function(m) {
-        create_boxplot_with_dunn(
+          create_boxplot_with_dunn(
             plot_data = all_plot_data,
             results_table = results_table,
             dataset_name = current_dataset,
             metric_name = m,
             is_normalized = FALSE
-        ) +
+          ) +
             ggtitle(paste("Metric:", m)) +
             theme(plot.title = element_text(size = 10))
         })
         
-        # Create the grid
+        # Create and store the grid
         current_grid <- grid.arrange(
-        grobs = page_plots,
-        ncol = 2,
-        nrow = 2,
-        top = paste(current_dataset, "- Page", page_num)
+          grobs = page_plots,
+          ncol = 2,
+          nrow = 2,
+          top = paste(current_dataset, "- Page", page_num)
         )
         
         # Display in RStudio Viewer
         print(current_grid)
+        Sys.sleep(2)  # Brief pause for viewing
         
-        # Pause between pages (except last page)
-        if(page_num < length(metric_chunks)) {
-        Sys.sleep(pause_time)  # Wait before showing next page
+        # Store grid with unique name
+        grid_name <- paste(current_dataset, "Page", page_num)
+        dataset_grids[[page_num]] <- current_grid
+        names(dataset_grids)[page_num] <- grid_name
+      }
+      
+      # Add all pages for this dataset to master list
+      all_grids_non_normalized[[current_dataset]] <- dataset_grids
+    }
+
+    # Save all grids after creation (external from the loop)
+    save_grids <- function(grid_list, format = "png") {
+      for(dataset_name in names(grid_list)) {
+        for(page_name in names(grid_list[[dataset_name]])) {
+          filename <- paste0(dataset_name,"_","RAW" ,"_", gsub(" ", "_", page_name), ".", format)
+          ggsave(
+            filename = filename,
+            plot = grid_list[[dataset_name]][[page_name]],
+            width = output_width,
+            height = output_height,
+            units = "in",
+            dpi = 300
+          )
+          message("Saved: ", filename)
         }
-    }
-    
-    # Pause between datasets (except last dataset)
-    if(current_dataset != tail(unique(all_plot_data$dataset), 1)) {
-        Sys.sleep(pause_time * 2)  # Longer pause between datasets
-    }
+      }
     }
 
+    # Execute saving (choose format)
+    save_grids(all_grids_non_normalized, format = "png")  # Can also use "pdf" for multi-page
 
-#with save function attached for non normalized
-setwd("/home/rachele/SNVs/results/stats/euro/raw")
+
+
+# create plots only when signifant p value 
+# Modified function to create all plots (only significant ones)
+create_significant_plots <- function(plot_data, results_table) {
+  # Get unique combinations of parameters with significant p-values
+  significant_combinations <- results_table %>%
+    filter(kruskal_p_adj < 0.05) %>%
+    distinct(dataset, metric, normalization)
+  
+  # Create a plot for each significant combination
+  plots <- pmap(significant_combinations, function(dataset, metric, normalization) {
+    create_boxplot_with_dunn(
+      plot_data = plot_data,
+      results_table = results_table,
+      dataset_name = dataset,
+      metric_name = metric,
+      is_normalized = normalization
+    )
+  })
+  
+  return(plots)
+}
+
 
 # Set parameters
 metrics_per_page <- 4
 output_width <- 14  # inches
 output_height <- 10 # inches
 
-# Create a list to store all grids before saving
-all_grids_non_normalized <- list()
+# Create a list to store all significant grids before saving
+all_significant_grids <- list()
 
 for(current_dataset in unique(all_plot_data$dataset)) {
-  
-  # Get all metrics for current dataset (non-normalized)
-  all_metrics <- all_plot_data %>%
-    filter(dataset == current_dataset, normalization == "FALSE") %>%
+  # Get significant metrics for current dataset (non-normalized)
+  significant_metrics <- results_table %>%
+    filter(dataset == current_dataset, 
+           normalization == "FALSE",
+           kruskal_p_adj < 0.05) %>%
     distinct(metric) %>%
     pull()
   
+  # Skip if no significant metrics for this dataset
+  if(length(significant_metrics) == 0) next
+  
   # Split into chunks of 4 metrics
   metric_chunks <- split(
-    all_metrics,
-    ceiling(seq_along(all_metrics)/metrics_per_page)
+    significant_metrics,
+    ceiling(seq_along(significant_metrics)/metrics_per_page)
   )
   
   # Store grids for this dataset
   dataset_grids <- list()
   
   for(page_num in seq_along(metric_chunks)) {
-    
     # Create the 4 plots for this page
     page_plots <- lapply(metric_chunks[[page_num]], function(m) {
       create_boxplot_with_dunn(
@@ -828,7 +858,7 @@ for(current_dataset in unique(all_plot_data$dataset)) {
       grobs = page_plots,
       ncol = 2,
       nrow = 2,
-      top = paste(current_dataset, "- Page", page_num)
+      top = paste(current_dataset, "- Page", page_num, "(Significant results only)")
     )
     
     # Display in RStudio Viewer
@@ -836,119 +866,14 @@ for(current_dataset in unique(all_plot_data$dataset)) {
     Sys.sleep(2)  # Brief pause for viewing
     
     # Store grid with unique name
-    grid_name <- paste(current_dataset, "Page", page_num)
+    grid_name <- paste("Significant_",current_dataset, "Page", page_num)
     dataset_grids[[page_num]] <- current_grid
     names(dataset_grids)[page_num] <- grid_name
   }
   
   # Add all pages for this dataset to master list
-  all_grids_non_normalized[[current_dataset]] <- dataset_grids
+  all_significant_grids[[current_dataset]] <- dataset_grids
 }
 
-# Save all grids after creation (external from the loop)
-save_grids <- function(grid_list, format = "png") {
-  for(dataset_name in names(grid_list)) {
-    for(page_name in names(grid_list[[dataset_name]])) {
-      filename <- paste0(dataset_name,"_","RAW" ,"_", gsub(" ", "_", page_name), ".", format)
-      ggsave(
-        filename = filename,
-        plot = grid_list[[dataset_name]][[page_name]],
-        width = output_width,
-        height = output_height,
-        units = "in",
-        dpi = 300
-      )
-      message("Saved: ", filename)
-    }
-  }
-}
-
-# Execute saving (choose format)
-save_grids(all_grids_non_normalized, format = "png")  # Can also use "pdf" for multi-page
-
-
-
-#with save function attached for normalized
- setwd("/home/rachele/SNVs/results/stats/euro/normalized")
-# Set parameters
-metrics_per_page <- 4
-output_width <- 14  # inches
-output_height <- 10 # inches
-
-# Create a list to store all grids before saving
-all_grids_normalized <- list()
-
-for(current_dataset in unique(all_plot_data$dataset)) {
-  
-  # Get all metrics for current dataset (non-normalized)
-  all_metrics <- all_plot_data %>%
-    filter(dataset == current_dataset, normalization == "TRUE") %>%
-    distinct(metric) %>%
-    pull()
-  
-  # Split into chunks of 4 metrics
-  metric_chunks <- split(
-    all_metrics,
-    ceiling(seq_along(all_metrics)/metrics_per_page)
-  )
-  
-  # Store grids for this dataset
-  dataset_grids <- list()
-  
-  for(page_num in seq_along(metric_chunks)) {
-    
-    # Create the 4 plots for this page
-    page_plots <- lapply(metric_chunks[[page_num]], function(m) {
-      create_boxplot_with_dunn(
-        plot_data = all_plot_data,
-        results_table = results_table,
-        dataset_name = current_dataset,
-        metric_name = m,
-        is_normalized = TRUE
-      ) +
-        ggtitle(paste("Metric:", m)) +
-        theme(plot.title = element_text(size = 10))
-    })
-    
-    # Create and store the grid
-    current_grid <- grid.arrange(
-      grobs = page_plots,
-      ncol = 2,
-      nrow = 2,
-      top = paste(current_dataset, "- Page", page_num)
-    )
-    
-    # Display in RStudio Viewer
-    print(current_grid)
-    Sys.sleep(2)  # Brief pause for viewing
-    
-    # Store grid with unique name
-    grid_name <- paste(current_dataset, "Page", page_num)
-    dataset_grids[[page_num]] <- current_grid
-    names(dataset_grids)[page_num] <- grid_name
-  }
-  
-  # Add all pages for this dataset to master list
-  all_grids_normalized[[current_dataset]] <- dataset_grids
-}
-
-# Save all grids after creation (external from the loop)
-save_grids <- function(grid_list, format = "png") {
-  for(dataset_name in names(grid_list)) {
-    for(page_name in names(grid_list[[dataset_name]])) {
-      filename <- paste0(dataset_name,"_","NORMALIZED" ,"_", gsub(" ", "_", page_name), ".", format)
-      ggsave(
-        filename = filename,
-        plot = grid_list[[dataset_name]][[page_name]],
-        width = output_width,
-        height = output_height,
-        units = "in",
-        dpi = 300
-      )
-      message("Saved: ", filename)
-    }
-  }
-}
-
-# Execute saving (choose format)
-save_grids(all_grids_normalized, format = "png")  # Can also use "pdf" for multi-page
+# Save only significant grids
+save_grids(all_significant_grids, format = "png")
