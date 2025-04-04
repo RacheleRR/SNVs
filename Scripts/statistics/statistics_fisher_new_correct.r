@@ -1,4 +1,4 @@
-#statstical fisher test new 
+# statstical fisher test new 
 # ALLA STATISTICS 
 
 # Load necessary libraries for data manipulation and analysis
@@ -54,7 +54,7 @@ library(ggplot2)
 
 # LOAD PERSONAL DATA 
     # Specify the folder containing your TSV files
-    folder_path <- "/home/rachele/SNVs/results/euro"
+    folder_path <- "/home/rachele/SNVs/results/global"
 
     # List all the TSV files in the folder
     tsv_files <- list.files(path = folder_path, pattern = "\\.tsv$", full.names = TRUE)
@@ -208,6 +208,17 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     pred_PTV_pLI_VEP_filtered$sample_label_3 <- sapply(pred_PTV_pLI_VEP_filtered$sample_label_2,derive_group_label)
     pred_PTV_VEP_filtered$sample_label_3 <- sapply(pred_PTV_VEP_filtered$sample_label_2,derive_group_label)
 
+    pred_NON_patho_MPC_pLI_VEP_filtered <-pred_NON_patho_MPC_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_NON_patho_MPC_VEP_filtered <-pred_NON_patho_MPC_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_pLI_VEP_filtered <-pred_PTV_pLI_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_VEP_filtered <-pred_PTV_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+
+
+
+
+
 
 # manifest for UHR_NA
     UHR_NA_SAMPLE_IDS <- read.csv("~/UHR_NA_SAMPLE_IDS.csv", sep="")
@@ -216,7 +227,12 @@ check_outlier_label <- function(outlier_value, manifest_df) {
 # CREATE DATAFRAME TO BE USED FOR STATISTICS 
     # Define a function to process each dataframe and return the result
     # This function processes the data to separate rows, clean up sample IDs, and filter based on specific gene sets
-    process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or) {
+    process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE) {
+
+        if(private){
+        df <- df %>% filter(count == 1)  # Only filter if private=TRUE
+    }
+
 
     #dataframe to count individuals 
     expanded_df <- df %>%
@@ -541,12 +557,21 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     # View the final result
     print(final_result_df)
     # Process each dataframe and create separate result tables
-    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or )
-    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+
+
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+
 
 #when there is an NA put 0 
 final_result_df[is.na(final_result_df)] <-0
@@ -556,122 +581,6 @@ result_df_patho_pLI[is.na(result_df_patho_pLI)] <- 0
 result_df_patho[is.na(result_df_patho)] <- 0
 result_df_PTV_pLI[is.na(result_df_PTV_pLI)] <- 0
 result_df_PTV[is.na(result_df_PTV)] <- 0
-
-
-# fisher variants
-##Question: "Do specific gene sets (e.g., brain genes) have a different proportion of variants in cases vs. controls?"
-    perform_variant_confrontation <- function(result_df, row) {
-        # Input validation
-        if (any(result_df[row, c("Case", "Control")] < 0) || 
-            result_df[1, "Case"] < result_df[row, "Case"] || 
-            result_df[1, "Control"] < result_df[row, "Control"]) {
-            stop("Invalid counts: Negative values or subgroup exceeds total group")
-        }
-
-        # Calculate counts
-        total_case <- result_df[1, "Case"]  # Total cases (from the first row)
-        total_control <- result_df[1, "Control"]  # Total controls (from the first row)
-        
-        case_with_variant <- result_df[row, "Case"]  # Cases with the variant
-        control_with_variant <- result_df[row, "Control"]  # Controls with the variant
-        
-        case_without_variant <- total_case - case_with_variant  # Cases without the variant
-        control_without_variant <- total_control - control_with_variant  # Controls without the variant
-
-        # Create contingency table
-        variant_counts <- matrix(
-            c(
-                case_with_variant, case_without_variant,  # Row 1: Cases
-                control_with_variant, control_without_variant  # Row 2: Controls
-            ),
-            nrow = 2,
-            byrow = TRUE,  # Fill the matrix row-wise
-            dimnames = list(
-                Group = c("Case", "Control"),
-                Variant = c("In Group", "Not In Group")
-            )
-        )
-
-        # Auto-select test based on expected counts
-        expected <- chisq.test(variant_counts)$expected
-        if (any(expected < 5)) {
-            test <- fisher.test(variant_counts)
-            method <- "Fisher"
-            odds_ratio <- test$estimate
-        } else {
-            test <- chisq.test(variant_counts)
-            method <- "ChiSq"
-            odds_ratio <- (variant_counts[1, 1] / variant_counts[1, 2]) / (variant_counts[2, 1] / variant_counts[2, 2])
-        }
-
-        return(list(
-            contingency_table = variant_counts,
-            p_value = test$p.value,
-            odds_ratio = odds_ratio,
-            method = method,
-            total_case = total_case,
-            total_control = total_control,
-            case_with_variant = case_with_variant,
-            control_with_variant = control_with_variant,
-            case_without_variant = case_without_variant,
-            control_without_variant = control_without_variant
-        ))
-    }
-
-    perform_variant_confrontation_tests <- function(result_df, test_name) {
-        # Define rows to test and their corresponding names
-        rows <- c(4, 7, 10, 13, 16, 19)
-        row_names <- c("brain_variants", "brain_filter_ntpm_variants", "schema_pval_variants",
-                    "bipolar_variants", "sfari_non_syndromic_variants", "schema_or_variants")
-
-        # Perform tests for each row
-        results <- lapply(seq_along(rows), function(i) {
-            res <- perform_variant_confrontation(result_df, rows[i])
-            data.frame(
-                Test = test_name,  # Explicit test name
-                Row = row_names[i],
-                Cases_In = res$contingency_table[1, 1],
-                Cases_Out = res$contingency_table[1, 2],
-                Controls_In = res$contingency_table[2, 1],
-                Controls_Out = res$contingency_table[2, 2],
-                OR = res$odds_ratio,
-                p_value = res$p_value,
-                Method = res$method,
-                Total_Cases = res$total_case,
-                Total_Controls = res$total_control,
-                Cases_With_Variant = res$case_with_variant,
-                Controls_With_Variant = res$control_with_variant,
-                Cases_Without_Variant = res$case_without_variant,
-                Controls_Without_Variant = res$control_without_variant
-            )
-        })
-        
-        # Combine results into a single dataframe
-        do.call(rbind, results)
-    }
-
-    # Perform tests for all datasets
-    results <- list(
-        NON_patho_pLI = perform_variant_confrontation_tests(result_df_NON_patho_pLI, "NON_patho_pLI"),
-        NON_patho = perform_variant_confrontation_tests(result_df_NON_patho,"NON_patho"),
-        patho_pLI = perform_variant_confrontation_tests(result_df_patho_pLI, "patho_pLI"),
-        patho = perform_variant_confrontation_tests(result_df_patho, "patho"),
-        PTV_pLI = perform_variant_confrontation_tests(result_df_PTV_pLI, "PTV_pLI"),
-        PTV = perform_variant_confrontation_tests(result_df_PTV, "PTV")
-    )
-
-    # Combine all results into a single dataframe
-    final_results <- do.call(rbind, results)
-
-    # Apply multiple testing corrections
-    final_results$p_adj_global <- p.adjust(final_results$p_value, method = "fdr")
-    final_results <- final_results %>%
-        group_by(Test) %>%  # Group by dataset (e.g., NON_patho_pLI)
-        mutate(p_adj_per_test = p.adjust(p_value, method = "fdr")) %>%
-        ungroup()
-
-    # View final results
-    print(final_results)
 
 # fisher individuals 
 #Question:"Are individuals with ≥1 variant in a gene set more common in cases vs. controls?"
@@ -779,105 +688,6 @@ result_df_PTV[is.na(result_df_PTV)] <- 0
     # View final results
     print(fisher_results_ind_df)
 
-# fisher case control 
-#question = is the number of variance between case and control signifcant diffrent 
-
-
-    # Create a list of your dataframes
-    pred_df_list <- list(
-    NON_patho_pLI = pred_NON_patho_MPC_pLI_VEP_filtered,
-    NON_patho = pred_NON_patho_MPC_VEP_filtered,
-    patho_pLI = pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered,
-    patho = pred_patho_MPC_ALPHAMISSENSE_VEP_filtered,
-    PTV_pLI = pred_PTV_pLI_VEP_filtered,
-    PTV = pred_PTV_VEP_filtered
-    )
-
-    create_contingency_table <- function(df) {
-    # Split variants by sample and group
-    expanded_df <- df %>%
-        separate_rows(SAMPLES, sep = ",") %>%
-        mutate(
-        sample_id = trimws(SAMPLES),
-        group = sapply(sample_label_2, derive_group_label)
-        ) %>%
-        filter(group %in% c("Case", "Control")) %>%
-        filter(!sample_id %in% UHR_NA_SAMPLE_IDS$V1) %>%
-        distinct(SYMBOL,CHROM, POS,ID, REF, ALT, group, .keep_all = TRUE)
-    
-    # Get counts
-    total_case <- sum(expanded_df$group == "Case")
-    total_control <- sum(expanded_df$group == "Control")
-    total_variants <- nrow(expanded_df)
-    
-    # Build correct contingency table
-    contingency_table <- matrix(
-        c(total_case, total_control,
-        total_variants - total_case, total_variants - total_control),
-        nrow = 2,
-        dimnames = list(
-        Group = c("In Group", "Not In Group"),
-        Status = c("Case", "Control")
-        )
-    )
-    
-    return(list(
-        contingency_table = contingency_table,
-        total_variants = total_variants,
-        total_case = total_case,
-        total_control = total_control
-    ))
-    }
-    
-    # Generate contingency tables and counts for all dataframes
-    contingency_results <- lapply(pred_df_list, create_contingency_table)
-
-    # Function to perform Fisher's exact test on a contingency table
-    perform_fisher_test <- function(contingency_table) {
-    # Perform Fisher's exact test
-    test_result <- fisher.test(contingency_table)
-    
-    # Extract results
-    list(
-        p_value = test_result$p.value,
-        odds_ratio = test_result$estimate,
-        conf_int = test_result$conf.int
-    )
-    }
-
-    # Apply Fisher's test to all contingency tables
-    fisher_results <- lapply(contingency_results, function(res) {
-    list(
-        test_result = perform_fisher_test(res$contingency_table),
-        total_variants = res$total_variants,
-        total_case = res$total_case,
-        total_control = res$total_control
-    )
-    })
-
-    # Combine results into a dataframe
-    fisher_results_df <- do.call(rbind, lapply(names(fisher_results), function(test_name) {
-    res <- fisher_results[[test_name]]
-    data.frame(
-        Test = test_name,
-        Total_Variants = res$total_variants,
-        Case_Variants = res$total_case,
-        Control_Variants = res$total_control,
-        OR = res$test_result$odds_ratio,
-        CI_Low = res$test_result$conf_int[1],
-        CI_High = res$test_result$conf_int[2],
-        p_value = res$test_result$p_value
-    )
-    }))
-
-    # Add FDR correction for multiple testing
-    fisher_results_df$p_adj <- p.adjust(fisher_results_df$p_value, method = "fdr")
-
-    # Print the results
-    print(fisher_results_df)
-
-
-
 
 #  rate comparison 
 #Question: "What is the proportion of individuals carrying variants in a gene set (cases vs. controls)?"
@@ -936,136 +746,63 @@ result_df_PTV[is.na(result_df_PTV)] <- 0
 
 
 # visualization 
-manhattan_plot_V <- ggplot(final_results, aes(x = Row, y = -log10(p_adj_global))) +
-  geom_point(aes(color = Test, size = OR), alpha = 0.7) +
-  geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "red") +
-  facet_grid(Test ~ ., scales = "free_y") +
-  scale_color_viridis_d(option = "plasma") +
-  labs(title = "fisher_chiSquare_Across Tests",
-       x = "Gene Set Category",
-       y = "-log10(FDR-adjusted p-value)") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        strip.text.y = element_text(angle = 0))
-
-manhattan_plot_CC <- ggplot(fisher_results_df, aes(x = Test, y = -log10(p_adj))) +
-    geom_point(aes(color = Test, size = OR), alpha = 0.7) +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "red") +
-    scale_color_viridis_d(option = "plasma") +
-    labs(title = "fisher_chiSquare_Across Tests",
-         x = "Gene Set Category",
-         y = "-log10(FDR-adjusted p-value)") +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          strip.text.y = element_text(angle = 0))
+    manhattan_plot_ind <- ggplot(fisher_results_ind_df, aes(x = Row, y = -log10(p_adj_per_test))) +
+        geom_point(aes(color = Test, size = OR), alpha = 0.7) +
+        geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "red") +
+        facet_grid(Test ~ ., scales = "free_y") +
+        scale_color_viridis_d(option = "plasma") +
+        labs(title = "fisher Across Tests",
+            x = "Gene Set Category",
+            y = "-log10(FDR-adjusted p-value)") +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            strip.text.y = element_text(angle = 0))
 
 
-manhattan_plot_ind <- ggplot(fisher_results_ind_df, aes(x = Row, y = -log10(p_adj_global))) +
-    geom_point(aes(color = Test, size = OR), alpha = 0.7) +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "red") +
-    facet_grid(Test ~ ., scales = "free_y") +
-    scale_color_viridis_d(option = "plasma") +
-    labs(title = "fisher_chiSquare_Across Tests",
-         x = "Gene Set Category",
-         y = "-log10(FDR-adjusted p-value)") +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          strip.text.y = element_text(angle = 0))
-
-
-volcano_plot_ind <- fisher_results_ind_df %>%
-  mutate(log_OR = log2(OR),
-         log_p = -log10(p_adj_global)) %>%
-  ggplot(aes(x = log_OR, y = log_p)) +
-  geom_point(aes(color = Test, shape = p_adj_global < 0.05), size = 3) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  geom_hline(yintercept = -log10(0.05), color = "red") +
-  ggrepel::geom_text_repel(
-    data = . %>% filter(p_adj_global < 0.05),
-    aes(label = Row), max.overlaps = 20
-  ) +
-  scale_shape_manual(values = c(1, 16)) +
-  labs(title = "Variant Carrier Association",
-       x = "log2(Odds Ratio)",
-       y = "-log10(FDR p-value)")
-
-volcano_plot_CC <- fisher_results_df %>%
+    volcano_plot_ind <- fisher_results_ind_df %>%
     mutate(log_OR = log2(OR),
-           log_p = -log10(p_adj)) %>%
+            log_p = -log10(p_adj_per_test)) %>%
     ggplot(aes(x = log_OR, y = log_p)) +
-    geom_point(aes(color = Test, shape = p_adj < 0.05), size = 3) +
+    geom_point(aes(color = Test, shape = p_adj_per_test < 0.05), size = 3) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_hline(yintercept = -log10(0.05), color = "red") +
     ggrepel::geom_text_repel(
-        data = . %>% filter(p_adj < 0.05),
-        aes(label = Test), max.overlaps = 20
-    ) +
-    scale_shape_manual(values = c(1, 16)) +
-    labs(title = "Variant Carrier Association",
-         x = "log2(Odds Ratio)",
-         y = "-log10(FDR p-value)")
-
-volcano_plot_V <- final_results %>%
-    mutate(log_OR = log2(OR),
-           log_p = -log10(p_adj_global)) %>%
-    ggplot(aes(x = log_OR, y = log_p)) +
-    geom_point(aes(color = Test, shape = p_adj_global < 0.05), size = 3) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_hline(yintercept = -log10(0.05), color = "red") +
-    ggrepel::geom_text_repel(
-        data = . %>% filter(p_adj_global < 0.05),
+        data = . %>% filter(p_adj_per_test < 0.05),
         aes(label = Row), max.overlaps = 20
     ) +
     scale_shape_manual(values = c(1, 16)) +
-    labs(title = "Variant Carrier Association",
-         x = "log2(Odds Ratio)",
-         y = "-log10(FDR p-value)")
+    labs(title = "fisher Across Tests",
+        x = "log2(Odds Ratio)",
+        y = "-log10(FDR p-value)")
 
 
-dot_plot_V <- final_results %>%
-  ggplot(aes(x = OR, y = Row)) +
-  geom_point(aes(size = Cases_With_Variant, 
-                 color = -log10(p_adj_global))) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  scale_color_viridis_c(option = "magma") +
-  facet_grid(Test ~ ., scales = "free", space = "free") +
-  labs(title = "Variant Enrichment Patterns",
-       x = "Odds Ratio (Case vs Control)",
-       y = "Gene Set Category") +
-  theme_minimal()       
 
 
-  dot_plot_ind <- fisher_results_ind_df %>%
-    ggplot(aes(x = OR, y = Row)) +
-    geom_point(aes(size = Case_Carriers, 
-                   color = -log10(p_adj_global))) +
-    geom_vline(xintercept = 1, linetype = "dashed") +
-    scale_color_viridis_c(option = "magma") +
-    facet_grid(Test ~ ., scales = "free", space = "free") +
-    labs(title = "Variant Enrichment Patterns",
-         x = "Odds Ratio (Case vs Control)",
-         y = "Gene Set Category") +
-    theme_minimal()      
+    dot_plot_ind <- fisher_results_ind_df %>%
+        ggplot(aes(x = OR, y = Row)) +
+        geom_point(aes(size = Case_Carriers, 
+                    color = -log10(p_adj_per_test))) +
+        geom_vline(xintercept = 1, linetype = "dashed") +
+        scale_color_viridis_c(option = "magma") +
+        facet_grid(Test ~ ., scales = "free", space = "free") +
+        labs(title = "fisher Across Tests",
+            x = "Odds Ratio (Case vs Control)",
+            y = "Gene Set Category") +
+        theme_minimal()      
 
 
-setwd("/home/rachele/SNVs/results/stats/euro")
+# working directory 
+    setwd("/home/rachele/SNVs/results/stats/global")
 
 
-#save plots
-ggsave("Vulcano_CaseControl_association.png", plot = volcano_plot_CC, width = 10 , height = 8 )
-ggsave("Vulcano_Individuals_association_ind.png", plot = volcano_plot_ind, width = 10 , heigh =8 )
-ggsave("Vulcano_Variants_association.png",plot=volcano_plot_V,width=10,heigh=8)
-ggsave("Manhattan_CaseControl.png", plot= manhattan_plot_CC,width=10 , heigh =8  )
-ggsave("Manhattan_Individuals_ind.png", plot= manhattan_plot_ind,width=10 , heigh =8 )
-ggsave("Manhattan_Variants.png",plot= manhattan_plot_V,width =10 , heigh =8 )
-ggsave("Dot_Individuals_association_ind.png", plot = dot_plot_ind, width = 10 , heigh =8 )
-ggsave("Dot_Variants_association.png", plot = dot_plot_V, width = 10 , heigh =8 )
+# save plots
+    ggsave("Vulcano_Individuals_association_ind.png", plot = volcano_plot_ind, width = 10 , heigh =8 )
+    ggsave("Manhattan_Individuals_ind.png", plot= manhattan_plot_ind,width=10 , heigh =8 )
+    ggsave("Dot_Individuals_association_ind.png", plot = dot_plot_ind, width = 10 , heigh =8 )
 
-#save tabels 
-write.csv(final_results, "Fisher_Variants.csv")
-write.csv(fisher_results_ind_df, "Fisher_Individuals.csv")
-write.csv(fisher_results_df, "Fisher_CaseControl.csv")
-write.csv(rate_confront_df,"rate_confront.csv")
+# save tabels 
+    write.csv(fisher_results_ind_df, "Fisher_Individuals.csv")
+    write.csv(rate_confront_df,"rate_confront.csv")
 
 
 
