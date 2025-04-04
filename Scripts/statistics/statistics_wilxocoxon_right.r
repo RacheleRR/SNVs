@@ -59,7 +59,7 @@ SFARI <- read_csv("/home/rachele/Documents/old/geneset_confrontation/SFARI.csv")
 # LOAD MINE     
 # LOAD PERSONAL DATA 
     # Specify the folder containing your TSV files
-    folder_path <- "/home/rachele/SNVs/results/euro"
+    folder_path <- "/home/rachele/SNVs/results/global"
 
     # List all the TSV files in the folder
     tsv_files <- list.files(path = folder_path, pattern = "\\.tsv$", full.names = TRUE)
@@ -199,6 +199,16 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     pred_PTV_pLI_VEP_filtered$sample_label_3 <- sapply(pred_PTV_pLI_VEP_filtered$sample_label_2,derive_group_label)
     pred_PTV_VEP_filtered$sample_label_3 <- sapply(pred_PTV_VEP_filtered$sample_label_2,derive_group_label)
 
+
+
+    pred_NON_patho_MPC_pLI_VEP_filtered <-pred_NON_patho_MPC_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_NON_patho_MPC_VEP_filtered <-pred_NON_patho_MPC_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_pLI_VEP_filtered <-pred_PTV_pLI_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+    pred_PTV_VEP_filtered <-pred_PTV_VEP_filtered%>% mutate(count = sapply(strsplit(SAMPLES, ","), length))
+
+
     UHR_NA_SAMPLE_IDS <- read.csv("~/UHR_NA_SAMPLE_IDS.csv", sep="")
     #example S36827
 
@@ -206,7 +216,11 @@ colnames(manifest_correct) <- c("Status", "sample_id", "group")
 
 
 # stuff
-process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or) {
+process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE) {
+
+    if(private){
+        df <- df %>% filter(count == 1)  # Only filter if private=TRUE
+    }
     
     # Assume expanded_df is already created as per your code
    expanded_df <- df %>%
@@ -285,13 +299,20 @@ process_df <- function(df, name, brain_gene_consensus_filtered_consensus_no_pitu
 }
 
 # Create separate data frames for each call to process_df
-result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
-result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or)
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=FALSE)
 
+
+    result_df_NON_patho_pLI <- process_df(pred_NON_patho_MPC_pLI_VEP_filtered, "NON_patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_NON_patho <- process_df(pred_NON_patho_MPC_VEP_filtered, "NON_patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE )
+    result_df_patho_pLI <- process_df(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered, "patho_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_patho <- process_df(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered, "patho", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV_pLI <- process_df(pred_PTV_pLI_VEP_filtered, "PTV_pLI", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
+    result_df_PTV <- process_df(pred_PTV_VEP_filtered, "PTV", brain_gene_consensus_filtered_consensus_no_pitular, brain_gene_consensus_ntm_consensus_no_pitular, genes_schema_pval, genes_bipolar, genes_sfari_non_syndromic, genes_schema_or,private=TRUE)
 
 
 manifest_correct <- manifest_correct %>% filter(!grepl("UHR_NA", group))
@@ -327,118 +348,6 @@ complete_df_PTV <- manifest_correct %>%
 
 
 # statistical test 
-
-# with normlaization 
-    analyze_metrics_norm <- function(df) {
-    # 1. Filter and normalize data
-    total_individuals <- c(Case = 302, Control = 76)
-    df_normalized <- df %>% 
-        filter(group %in% c("Case", "Control")) %>%
-        mutate(across(starts_with("Number_of"), 
-                    ~ ./total_individuals[group],
-                    .names = "{.col}_per_indiv"))
-    
-    # 2. Test each variant count metric
-    columns_to_test <- grep("_per_indiv$", names(df_normalized), value = TRUE)
-    
-    results <- map_dfr(columns_to_test, function(col) {
-        # Initialize result row
-        result_row <- tibble(
-        metric = gsub("_per_indiv", "", col),
-        case_zero = FALSE,
-        control_zero = FALSE,
-        shapiro_case_p = NA_real_,
-        shapiro_control_p = NA_real_,
-        primary_test = NA_character_,
-        primary_p = NA_real_,
-        secondary_test = NA_character_,
-        secondary_p = NA_real_,
-        note = NA_character_
-        )
-        
-        # Split data
-        case_data <- df_normalized[[col]][df_normalized$group == "Case"]
-        control_data <- df_normalized[[col]][df_normalized$group == "Control"]
-        
-        # Check for all-zero cases
-        result_row$case_zero <- all(case_data == 0)
-        result_row$control_zero <- all(control_data == 0)
-        
-        if (result_row$case_zero || result_row$control_zero) {
-        result_row$note <- case_when(
-            result_row$case_zero && result_row$control_zero ~ "All zeros in both groups",
-            result_row$case_zero ~ "All zeros in Case group",
-            TRUE ~ "All zeros in Control group"
-        )
-        return(result_row)
-        }
-        
-        # Handle constant values for Shapiro
-        safe_shapiro <- function(x) {
-        if (length(unique(x)) < 3) return(list(p.value = NA))
-        tryCatch(shapiro.test(x), error = function(e) list(p.value = NA))
-        }
-        
-        # Normality checks
-        shapiro_case <- safe_shapiro(case_data)
-        shapiro_control <- safe_shapiro(control_data)
-        result_row$shapiro_case_p <- shapiro_case$p.value
-        result_row$shapiro_control_p <- shapiro_control$p.value
-        
-        # Determine test strategy
-        if (!any(is.na(c(shapiro_case$p.value, shapiro_control$p.value))) &&
-        shapiro_case$p.value > 0.05 && 
-        shapiro_control$p.value > 0.05) {
-        primary <- "t-test"
-        secondary <- "wilcox"
-        } else {
-        primary <- "wilcox"
-        secondary <- "t-test"
-        }
-        
-        # Perform tests
-        tryCatch({
-        t_res <- t.test(df_normalized[[col]] ~ df_normalized$group) %>% tidy()
-        w_res <- wilcox.test(df_normalized[[col]] ~ df_normalized$group) %>% tidy()
-        
-        result_row$primary_test <- primary
-        result_row$primary_p <- if(primary == "t-test") t_res$p.value else w_res$p.value
-        result_row$secondary_test <- secondary
-        result_row$secondary_p <- if(secondary == "t-test") t_res$p.value else w_res$p.value
-        }, error = function(e) {
-        result_row$note <- paste("Test error:", e$message)
-        })
-        
-        result_row
-    })
-    
-    # Add FDR-adjusted p-values
-    results %>%
-        mutate(
-        primary_p_adj = p.adjust(primary_p, method = "fdr"),
-        secondary_p_adj = p.adjust(secondary_p, method = "fdr")
-        ) %>%
-        select(
-        metric, 
-        primary_test, primary_p, primary_p_adj,
-        secondary_test, secondary_p, secondary_p_adj,
-        everything()
-        )
-
-    }
-
-# Usage
-
-    # apply
-    results_norm_pred_NON_patho_pLI <- analyze_metrics_norm(complete_df_NON_patho_pLI) %>%  select(-case_zero, -control_zero)
-    results_norm_pred_NON_patho <- analyze_metrics_norm(complete_df_NON_patho) %>%  select(-case_zero, -control_zero)
-    results_norm_pred_patho_pLI <- analyze_metrics_norm(complete_df_patho_pLI) %>%  select(-case_zero, -control_zero)
-    results_norm_pred_patho <- analyze_metrics_norm(complete_df_patho) %>%  select(-case_zero, -control_zero)
-    results_norm_pred_PTV_pLI <- analyze_metrics_norm(complete_df_PTV_pLI) %>%  select(-case_zero, -control_zero)
-    results_norm_pred_PTV <- analyze_metrics_norm(complete_df_PTV) %>%  select(-case_zero, -control_zero)
-
-
-
 # without normalize
 
     analyze_metrics <- function(df) {
@@ -545,241 +454,249 @@ complete_df_PTV <- manifest_correct %>%
 
 
 # VISUALIZATION
-#with normalization
-    normalize_and_plot <- function(df, results_df, title_suffix) {
-        # 1. Normalize the data (per-individual counts)
-        total_individuals <- c(Case = 302, Control = 76)
-        df_normalized <- df %>% 
-            filter(group %in% c("Case", "Control")) %>%
-            mutate(across(starts_with("Number_of"), 
-                        ~ ./total_individuals[group],
-                        .names = "{.col}_per_indiv"))
-        
-        # 2. Prepare annotation data from test results
-        annotation_data <- results_df %>%
-            filter(str_detect(metric, "^Number_of")) %>%
-            mutate(
-                metric_clean = gsub("Number_of_|_per_indiv", "", metric),
-                label = paste0(primary_test, "\nFDR p = ", format.pval(primary_p_adj, digits = 2)),
-                group = NA  # Add dummy group variable
+setwd("/home/rachele/SNVs/results/stats/global/private")
+# Save all the plots indiscriminate from significance  
+        plot <- function(df, results_df, title_suffix) {
+                # 2. Prepare annotation data from test results
+                annotation_data <- results_df %>%
+                    filter(str_detect(metric, "^Number_of")) %>%
+                    mutate(
+                        metric_clean = gsub("Number_of_", "", metric),
+                        label = paste0(primary_test, "\nFDR p = ", format.pval(primary_p_adj, digits = 2)),
+                        group = NA  # Add dummy group variable
+                    )
+                
+                # 3. Reshape for plotting
+                plot_data <- df %>%
+                    select(sample_id, group, starts_with("Number_of")) %>%
+                    pivot_longer(
+                        cols = -c(sample_id, group),
+                        names_to = "metric",
+                        values_to = "value"
+                    ) %>%
+                    mutate(
+                        metric_clean = gsub("Number_of_", "", metric)
+                    )
+                
+                # 4. Create the plot
+                ggplot(plot_data, aes(x = group, y = value, fill = group)) +
+                    geom_boxplot(outlier.shape = NA) +
+                    geom_jitter(width = 0.2, alpha = 0.3, size = 1) +
+                    facet_wrap(~ metric_clean, scales = "free_y", ncol = 3) +
+                    geom_text(
+                        data = annotation_data,
+                        aes(x = 1.5, y = Inf, label = label),
+                        inherit.aes = FALSE,  # Don't inherit aesthetics from main plot
+                        vjust = 1.5, size = 3, color = "black"
+                    ) +
+                    labs(
+                        title = paste("Case vs. Control:", title_suffix),
+                        x = "Group",
+                        y = "Variants per individual (raw)",
+                        fill = "Group"
+                    ) +
+                    theme_bw() +
+                    theme(
+                        strip.background = element_blank(),
+                        strip.text = element_text(face = "bold")
+                    )
+            }
+
+            plot_NON_patho_pLI <- plot(
+            complete_df_NON_patho_pLI, 
+            results_pred_NON_patho_pLI,
+            "Non-pathogenic (pLI filtered)"
             )
-        
-        # 3. Reshape for plotting
-        plot_data <- df_normalized %>%
-            select(sample_id, group, ends_with("_per_indiv")) %>%
-            pivot_longer(
-                cols = -c(sample_id, group),
-                names_to = "metric",
-                values_to = "value"
-            ) %>%
-            mutate(
-                metric_clean = gsub("Number_of_|_per_indiv", "", metric)
+
+            plot_NON_patho <- plot(
+            complete_df_NON_patho, 
+            results_pred_NON_patho,
+            "Non-pathogenic"
             )
-        
-        # 4. Create the plot
-        ggplot(plot_data, aes(x = group, y = value, fill = group)) +
-            geom_boxplot(outlier.shape = NA) +
-            geom_jitter(width = 0.2, alpha = 0.3, size = 1) +
-            facet_wrap(~ metric_clean, scales = "free_y", ncol = 3) +
-            geom_text(
-                data = annotation_data,
-                aes(x = 1.5, y = Inf, label = label),
-                inherit.aes = FALSE,  # Don't inherit aesthetics from main plot
-                vjust = 1.5, size = 3, color = "black"
-            ) +
-            labs(
-                title = paste("Case vs. Control:", title_suffix),
-                x = "Group",
-                y = "Variants per individual (normalized)",
-                fill = "Group"
-            ) +
-            theme_bw() +
-            theme(
-                strip.background = element_blank(),
-                strip.text = element_text(face = "bold")
+
+            plot_patho_pLI <- plot(
+            complete_df_patho_pLI, 
+            results_pred_patho_pLI,
+            "Pathogenic (pLI filtered)"
             )
+
+            plot_patho <- plot(
+            complete_df_patho, 
+            results_pred_patho,
+            "Pathogenic"
+            )
+
+            plot_PTV_pLI <- plot(
+            complete_df_PTV_pLI, 
+            results_pred_PTV_pLI,
+            "PTV (pLI filtered)"
+            )
+
+            plot_PTV <- plot(
+            complete_df_PTV, 
+            results_pred_PTV,
+            "PTV"
+            )
+
+            # Display one plot as example
+            plot_NON_patho
+
+            # To save all plots:
+            plots <- list(
+            plot_NON_patho_pLI, plot_NON_patho,
+            plot_patho_pLI, plot_patho,
+            plot_PTV_pLI, plot_PTV
+            )
+
+
+            walk2(plots, c("NON_patho_pLI", "NON_patho", "patho_pLI", "patho", "PTV_pLI", "PTV"), 
+                ~ ggsave(paste0("variant_comparison_", .y, ".png"), .x, width = 10, height = 8))
+
+
+        #save tabels 
+        combined_results_non_norm <- bind_rows(
+        "NON_patho_pLI" = results_pred_NON_patho_pLI,
+        "NON_patho" = results_pred_NON_patho,
+        "patho_pLI" = results_pred_patho_pLI,
+        "patho" = results_pred_patho,
+        "PTV_pLI" = results_pred_PTV_pLI,
+        "PTV" = results_pred_PTV,
+        .id = "analysis_type"  # Adds a column to identify the source
+        )
+
+# ONLY  show and save significant results
+    plot_significant <- function(df, results_df, title_suffix) {
+    # Filter for significant metrics (Wilcoxon FDR p < 0.05)
+    sig_metrics <- results_df %>%
+        filter(
+        str_detect(metric, "^Number_of"),
+        primary_p_adj < 0.05, 
+        primary_test == "wilcox"  # Focus on Wilcoxon results
+        ) %>%
+        pull(metric)
+    
+    # Return NULL if no significant results
+    if (length(sig_metrics) == 0) {
+        message("No significant results for: ", title_suffix)
+        return(NULL)
+    }
+    
+    # Prepare annotation data (only for significant metrics)
+    annotation_data <- results_df %>%
+        filter(metric %in% sig_metrics) %>%
+        mutate(
+        metric_clean = gsub("Number_of_", "", metric),
+        label = paste0("Wilcoxon\nFDR p = ", format.pval(primary_p_adj, digits = 2)),
+        group = NA  # Dummy group for positioning
+        )
+    
+    # Reshape data for plotting
+    plot_data <- df %>%
+        select(sample_id, group, all_of(sig_metrics)) %>%
+        pivot_longer(
+        cols = -c(sample_id, group),
+        names_to = "metric",
+        values_to = "value"
+        ) %>%
+        mutate(
+        metric_clean = gsub("Number_of_", "", metric)
+        )
+    
+    # Create the plot
+    ggplot(plot_data, aes(x = group, y = value, fill = group)) +
+        geom_boxplot(outlier.shape = NA) +
+        geom_jitter(width = 0.2, alpha = 0.3, size = 1) +
+        facet_wrap(~ metric_clean, scales = "free_y") +
+        geom_text(
+        data = annotation_data,
+        aes(x = 1.5, y = Inf, label = label),
+        vjust = 1.5, size = 3, color = "black"
+        ) +
+        labs(
+        title = paste("Significant results:", title_suffix),
+        x = "Group",
+        y = "Variants per individual",
+        fill = "Group"
+        ) +
+        theme_bw() +
+        theme(
+        strip.background = element_blank(),
+        strip.text = element_text(face = "bold")
+        )
     }
 
-    # Generate all plots
-    plot_norm_NON_patho_pLI <- normalize_and_plot(
-        complete_df_NON_patho_pLI, 
-        results_norm_pred_NON_patho_pLI,
-        "Non-pathogenic (pLI filtered)"
+    # Generate and save only significant plots
+    sig_plots <- list(
+    plot_significant(complete_df_NON_patho_pLI, results_pred_NON_patho_pLI, "Non-pathogenic (pLI)"),
+    plot_significant(complete_df_NON_patho, results_pred_NON_patho, "Non-pathogenic"),
+    plot_significant(complete_df_patho_pLI, results_pred_patho_pLI, "Pathogenic (pLI)"),
+    plot_significant(complete_df_patho, results_pred_patho, "Pathogenic"),
+    plot_significant(complete_df_PTV_pLI, results_pred_PTV_pLI, "PTV (pLI)"),
+    plot_significant(complete_df_PTV, results_pred_PTV, "PTV")
+    ) %>% 
+    compact()  # Remove NULL entries (non-significant results)
+
+    # Save significant plots
+    walk2(
+    sig_plots, 
+    c("NON_patho_pLI", "NON_patho", "patho_pLI", "patho", "PTV_pLI", "PTV")[1:length(sig_plots)],
+    ~ ggsave(
+        paste0("SIGNIFICANT_variant_comparison_", .y, ".png"), 
+        .x, 
+        width = 10, 
+        height = 6
     )
-    plot_norm_NON_patho <- normalize_and_plot(
-        complete_df_NON_patho, 
-        results_norm_pred_NON_patho,
-        "Non-pathogenic"
     )
-    plot_norm_patho_pLI <- normalize_and_plot(
-        complete_df_patho_pLI, 
-        results_norm_pred_patho_pLI,
-        "Pathogenic (pLI filtered)"
-    )
-    plot_norm_patho <- normalize_and_plot(
-        complete_df_patho, 
-        results_norm_pred_patho,
-        "Pathogenic"
-    )
-    plot_norm_PTV_pLI <- normalize_and_plot(
-        complete_df_PTV_pLI, 
-        results_norm_pred_PTV_pLI,
-        "PTV (pLI filtered)"
-    )
-    plot_norm_PTV <- normalize_and_plot(
-        complete_df_PTV, 
-        results_norm_pred_PTV,
-        "PTV"
-    )
-
-setwd("/home/rachele/SNVs/results/stats/euro/normalized")
-# To save all plots:
-    plots_norm <- list(
-  plot_norm_NON_patho_pLI,plot_norm_NON_patho,
-    plot_norm_patho_pLI,plot_norm_patho,
-    plot_norm_PTV_pLI,plot_norm_PTV)
-
-    walk2(plots_norm, c("NON_patho_pLI", "NON_patho", "patho_pLI", "patho", "PTV_pLI", "PTV"), 
-        ~ ggsave(paste0("variant_comparison_", .y, ".png"), .x, width = 10, height = 8))
-
-combined_results_norm <- bind_rows(
-    "NON_patho_pLI" = results_norm_pred_NON_patho_pLI,
-    "NON_patho" = results_norm_pred_NON_patho,
-    "patho_pLI" = results_norm_pred_patho_pLI,
-    "patho" = results_norm_pred_patho,
-    "PTV_pLI" = results_norm_pred_PTV_pLI,
-    "PTV" = results_norm_pred_PTV,
-    .id = "analysis_type"  # Adds a column to identify the source
-)
-
-write.csv(combined_results_norm, "combined_results_norm.csv", row.names = FALSE)
-
-
-#without normalization
-  plot <- function(df, results_df, title_suffix) {
-        # 2. Prepare annotation data from test results
-        annotation_data <- results_df %>%
-            filter(str_detect(metric, "^Number_of")) %>%
-            mutate(
-                metric_clean = gsub("Number_of_", "", metric),
-                label = paste0(primary_test, "\nFDR p = ", format.pval(primary_p_adj, digits = 2)),
-                group = NA  # Add dummy group variable
-            )
-        
-        # 3. Reshape for plotting
-        plot_data <- df %>%
-            select(sample_id, group, starts_with("Number_of")) %>%
-            pivot_longer(
-                cols = -c(sample_id, group),
-                names_to = "metric",
-                values_to = "value"
-            ) %>%
-            mutate(
-                metric_clean = gsub("Number_of_", "", metric)
-            )
-        
-        # 4. Create the plot
-        ggplot(plot_data, aes(x = group, y = value, fill = group)) +
-            geom_boxplot(outlier.shape = NA) +
-            geom_jitter(width = 0.2, alpha = 0.3, size = 1) +
-            facet_wrap(~ metric_clean, scales = "free_y", ncol = 3) +
-            geom_text(
-                data = annotation_data,
-                aes(x = 1.5, y = Inf, label = label),
-                inherit.aes = FALSE,  # Don't inherit aesthetics from main plot
-                vjust = 1.5, size = 3, color = "black"
-            ) +
-            labs(
-                title = paste("Case vs. Control:", title_suffix),
-                x = "Group",
-                y = "Variants per individual (raw)",
-                fill = "Group"
-            ) +
-            theme_bw() +
-            theme(
-                strip.background = element_blank(),
-                strip.text = element_text(face = "bold")
-            )
-    }
-
-
-
-
-
-    plot_NON_patho_pLI <- plot(
-    complete_df_NON_patho_pLI, 
-    results_pred_NON_patho_pLI,
-    "Non-pathogenic (pLI filtered)"
-    )
-
-    plot_NON_patho <- plot(
-    complete_df_NON_patho, 
-    results_pred_NON_patho,
-    "Non-pathogenic"
-    )
-
-    plot_patho_pLI <- plot(
-    complete_df_patho_pLI, 
-    results_pred_patho_pLI,
-    "Pathogenic (pLI filtered)"
-    )
-
-    plot_patho <- plot(
-    complete_df_patho, 
-    results_pred_patho,
-    "Pathogenic"
-    )
-
-    plot_PTV_pLI <- plot(
-    complete_df_PTV_pLI, 
-    results_pred_PTV_pLI,
-    "PTV (pLI filtered)"
-    )
-
-    plot_PTV <- plot(
-    complete_df_PTV, 
-    results_pred_PTV,
-    "PTV"
-    )
-
-    # Display one plot as example
-    plot_NON_patho
-
-    # To save all plots:
-    plots <- list(
-    plot_NON_patho_pLI, plot_NON_patho,
-    plot_patho_pLI, plot_patho,
-    plot_PTV_pLI, plot_PTV
-    )
-
-
-
-setwd("/home/rachele/SNVs/results/stats/euro/raw")
-
-    walk2(plots, c("NON_patho_pLI", "NON_patho", "patho_pLI", "patho", "PTV_pLI", "PTV"), 
-        ~ ggsave(paste0("variant_comparison_", .y, ".png"), .x, width = 10, height = 8))
-
-
-
-
-
-
-
-#save tabels 
-combined_results_non_norm <- bind_rows(
-  "NON_patho_pLI" = results_pred_NON_patho_pLI,
-  "NON_patho" = results_pred_NON_patho,
-  "patho_pLI" = results_pred_patho_pLI,
-  "patho" = results_pred_patho,
-  "PTV_pLI" = results_pred_PTV_pLI,
-  "PTV" = results_pred_PTV,
-  .id = "analysis_type"  # Adds a column to identify the source
-)
-
 
 
 # Save the combined results to a CSV file
 write.csv(combined_results_non_norm, "combined_results_non_norm.csv", row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #posssibilty to do more 
