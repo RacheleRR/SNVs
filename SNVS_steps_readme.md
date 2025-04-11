@@ -157,8 +157,9 @@ java -jar GeneBeClient-0.1.0-a.4.jar vcf annotate \
 --username [YOUR_USERNAME]
 ```
 ### 🔹 Filter Variants for Pathogenicity
-
+```bash
 ./filter_variants_for_pathogenicity.sh -i input.vcf.gz -o filtered_output.vcf.gz
+```
 
 ### 🔹 Convert VCF to TSV  
 ```bash
