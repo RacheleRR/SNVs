@@ -217,6 +217,16 @@ check_outlier_label <- function(outlier_value, manifest_df) {
     pred_PTV_pLI_VEP_filtered$sample_label_3 <- sapply(pred_PTV_pLI_VEP_filtered$sample_label_2,derive_group_label)
     pred_PTV_VEP_filtered$sample_label_3 <- sapply(pred_PTV_VEP_filtered$sample_label_2,derive_group_label)
 
+    pred_NON_patho_MPC_pLI_VEP_filtered <-pred_NON_patho_MPC_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(sample_label_2, ","), length))
+    pred_NON_patho_MPC_VEP_filtered <-pred_NON_patho_MPC_VEP_filtered%>% mutate(count = sapply(strsplit(sample_label_2, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered %>% mutate(count = sapply(strsplit(sample_label_2, ","), length))
+    pred_patho_MPC_ALPHAMISSENSE_VEP_filtered <-pred_patho_MPC_ALPHAMISSENSE_VEP_filtered%>% mutate(count = sapply(strsplit(sample_label_2, ","), length))
+    pred_PTV_pLI_VEP_filtered <-pred_PTV_pLI_VEP_filtered%>% mutate(count = sapply(strsplit(sample_label_2, ","), length))
+    pred_PTV_VEP_filtered <-pred_PTV_VEP_filtered%>% mutate(count = sapply(strsplit(sample_label_2, ","), length))
+    
+
+
+
 
 
 
@@ -231,9 +241,9 @@ return(list(case = case_df, control = control_df))
 }
 
 
-
 # Applying the function to each dataset
-split_NON_patho <- split_case_control(pred_NON_patho_MPC_pLI_VEP_filtered)
+split_NON_patho <- split_case_control(pred_NON_patho_MPC_VEP_filtered)
+split_NON_patho_pLI <- split_case_control(pred_NON_patho_MPC_pLI_VEP_filtered)
 split_patho_MPC_ALPHAMISSENSE_pLI <- split_case_control(pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered)
 split_patho_MPC_ALPHAMISSENSE <- split_case_control(pred_patho_MPC_ALPHAMISSENSE_VEP_filtered)
 split_PTV_pLI <- split_case_control(pred_PTV_pLI_VEP_filtered)
@@ -241,6 +251,8 @@ split_PTV <- split_case_control(pred_PTV_VEP_filtered)
 # Accessing the case and control dataframes
 case_NON_patho <- split_NON_patho$case
 control_NON_patho <- split_NON_patho$control
+case_NON_patho_pLI <- split_NON_patho_pLI$case
+control_NON_patho_pLI <- split_NON_patho_pLI$control
 case_patho_MPC_ALPHAMISSENSE_pLI <- split_patho_MPC_ALPHAMISSENSE_pLI$case
 control_patho_MPC_ALPHAMISSENSE_pLI <- split_patho_MPC_ALPHAMISSENSE_pLI$control
 case_patho_MPC_ALPHAMISSENSE <- split_patho_MPC_ALPHAMISSENSE$case
@@ -251,8 +263,9 @@ case_PTV <- split_PTV$case
 control_PTV <- split_PTV$control
 
 
+
 # set working directory 
- setwd("/home/rachele/SNVs/results/stats/global/genes")
+ setwd("/home/rachele/SNVs/results/stats/global/non_private/genes")
 # Function to filter unique genes and save as TSV
 save_unique_genes <- function(df, filename) {
 unique_df <- df[!duplicated(df$SYMBOL), ]  # Remove duplicates based on GENE column
@@ -262,6 +275,8 @@ write.table(unique_df, file = filename, sep = "\t", row.names = FALSE, quote = F
 # Apply to case and control datasets
 save_unique_genes(case_NON_patho, "case_NON_patho.tsv")
 save_unique_genes(control_NON_patho, "control_NON_patho.tsv")
+save_unique_genes(case_NON_patho_pLI, "case_NON_patho_pLI.tsv")
+save_unique_genes(control_NON_patho_pLI, "control_NON_patho_pLI.tsv")
 save_unique_genes(case_patho_MPC_ALPHAMISSENSE_pLI, "case_patho_MPC_ALPHAMISSENSE_pLI.tsv")
 save_unique_genes(control_patho_MPC_ALPHAMISSENSE_pLI, "control_patho_MPC_ALPHAMISSENSE_pLI.tsv")
 save_unique_genes(case_patho_MPC_ALPHAMISSENSE, "case_patho_MPC_ALPHAMISSENSE.tsv")
@@ -408,6 +423,8 @@ write.table(common_genes_df, "common_genes_case_PTV_brain_schema_or_gwas.tsv", s
   case_control_list <- list(
     case_NON_patho = case_NON_patho,
     control_NON_patho = control_NON_patho,
+    case_NON_patho_pLI = case_NON_patho_pLI,
+    control_NON_patho_pLI = control_NON_patho_pLI,
     case_patho_MPC_ALPHAM_pLI = case_patho_MPC_ALPHAMISSENSE_pLI,
     control_patho_MPC_ALPHAM_pLI = control_patho_MPC_ALPHAMISSENSE_pLI,
     case_patho_MPC_ALPHAM = case_patho_MPC_ALPHAMISSENSE,
