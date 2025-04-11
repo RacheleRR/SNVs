@@ -1,163 +1,198 @@
-🧬 SNVS STEPS — A Guide to Small but Mighty Variants
-🌟 Overview
+---
 
-Welcome to the SNV (Single Nucleotide Variant) workflow! This guide walks you through the full journey — from raw VCF files to insightful statistical, enrichment, and network analyses. You'll prep, clean, annotate, and analyze your SNVs with precision and care. 🧹🔬📊
-🎯 Objectives
+# 🧬 SNVs: From VCF to Insights  
 
-Here's what this pipeline helps you achieve:
+Welcome to **SNVs**! This project guides you through processing, annotating, and analyzing **Single Nucleotide Variants (SNVs)** using a structured pipeline that includes quality control, annotation, statistical tests, and biological interpretation through enrichment and network analysis.
 
-    📥 Process & filter SNVs from raw VCF files
+---
 
-    ✅ Apply quality control + variant recalibration
+## 🌟 Overview  
 
-    🏷️ Annotate variants using public databases
+This repository walks through how to:
 
-    🔄 Convert VCF → TSV for downstream fun
+- Prepare and process SNV data from raw VCFs  
+- Apply quality control and variant recalibration  
+- Annotate variants using public databases  
+- Convert VCFs into TSVs for analysis  
+- Run statistical, enrichment, and network analyses  
 
-    📈 Perform statistical + enrichment analyses
+---
 
-🧪 Pipeline Steps
-🗂 Step 1: Index & Sort
+## 🎯 Objectives  
 
-    Reads sample names from wgs.list
+✔️ Filter and prepare SNVs from raw variant data  
+✔️ Apply GATK-based quality control and recalibration  
+✔️ Annotate SNVs using rsIDs, VEP, and GeneBe  
+✔️ Convert VCF files to TSV format for visualization and R analysis  
+✔️ Run statistical and enrichment analyses on variant sets  
 
-    Locates *hard-filtered.vcf.gz files
+---
 
-    Sorts/indexes using bcftools
+## 🛠️ Prerequisites  
 
-    Logs successes + errors
+Make sure you have the following tools installed and available:
 
-🧬 Step 2: Merge VCF Files
+- `bcftools` 🔧  
+- `GATK` (v4+) 🧬  
+- `VEP` (Variant Effect Predictor) 📋  
+- `GeneBeClient` 🧠  
+- `R` + necessary analysis scripts 📊  
+- `transform_VCF.sh` script for VCF → TSV conversion 🔄  
 
-    Combines all sorted VCFs into merged.vcf.gz
+---
 
-🧹 Step 3: Normalize
+## 🔍 SNV Processing Steps  
 
-    Uses bcftools norm for structural consistency
+### 1️⃣ Index & Sort  
 
-📊 Step 4: Variant Recalibration
+- Read sample names from `wgs.list`  
+- Locate and sort `*hard-filtered.vcf.gz` files using `bcftools`  
+- Index and log processed/failed samples  
 
-    Runs GATK VariantRecalibrator with known resources
+### 2️⃣ Merge VCF Files  
 
-🔧 Step 5: Apply VQSR
+- Combine all VCFs into `step2_merge/merged.vcf.gz`  
 
-    Applies variant quality score recalibration using GATK
+### 3️⃣ Normalize VCF  
 
-🚫 Step 6: Filter Variants
+- Use `bcftools norm` to standardize format  
 
-    Removes low-quality variants (SelectVariants)
+### 4️⃣ Variant Recalibration  
 
-🔍 Step 7: Split Variants
+- Run `VariantRecalibrator` with known resources (e.g. HapMap, dbSNP)  
 
-    Separates SNPs vs INDELs
+### 5️⃣ Apply VQSR  
 
-🎛️ Step 8: Variant Filtration
+- Apply recalibration using `ApplyVQSR`  
 
-    Applies quality filters to each file type
+### 6️⃣ Filter Variants  
 
-🧼 Step 9: Remove Filtered Variants
+- Remove low-quality variants (`SelectVariants`)  
 
-    Excludes flagged variants from files
+### 7️⃣ Split SNPs & INDELs  
 
-🧩 Step 10: Merge SNP + INDEL
+- Use GATK to create separate SNP and INDEL files  
 
-    Combines cleaned SNP + INDEL into one VCF
+### 8️⃣ Apply Variant Filtration  
 
-🧹 Step 11: Clean Chromosome Names
+- Add filters using `VariantFiltration`  
 
-    Removes chr prefix via sed
+### 9️⃣ Remove Filtered Variants  
 
-🧬 Step 12: Normalize Again
+- Exclude flagged entries from each VCF  
 
-    One last normalization sweep using bcftools
+### 🔟 Merge Final SNP & INDELs  
 
-🧾 Step 13: Add rs IDs
+- Recombine into a final cleaned VCF  
 
-    Annotates with reference SNP IDs
+### 1️⃣1️⃣ Clean Chromosome Names  
 
-🔮 Step 14: Variant Effect Prediction (VEP)
+- Strip `chr` prefix using `sed`  
 
-    Adds functional prediction scores
+### 1️⃣2️⃣ Normalize Again  
 
-🧠 Step 15: GeneBe
+- Final normalization sweep with `bcftools`  
 
-    Annotates variants with ACMG + ClinGene scores
+### 1️⃣3️⃣ Annotate with rs IDs  
 
-✂️ Step 16: Filtering
+- Use `bcftools annotate` to add rs identifiers  
 
-    Filters for relevant variant types (e.g., pathogenic, PTVs)
+### 1️⃣4️⃣ Predict Variant Effects (VEP)  
 
-📄 Step 17: VCF → TSV
+- Run `VEP` for functional annotation  
 
-    Converts to TSV for easier use in R Studio
+### 1️⃣5️⃣ Add ACMG & ClinGene Annotations (GeneBe)  
 
-🧠 Step 18: Statistical Analysis
+- Use `GeneBeClient` for pathogenicity predictions  
 
-    Runs Wilcoxon, Fisher, and t-tests to assess significance
+### 1️⃣6️⃣ Filter Final Set  
 
-🧬 Step 19: Enrichment Analysis
+- Use `filter_variants_for_pathogenicity.sh` to retain only relevant variants:
 
-    Uses tools like Enrichr + Enrichment Map
+    ✅ Pathogenic
 
-🌐 Step 20: Network Analysis
+    ❌ Non-pathogenic
 
-    Explores interactions with GeneMANIA, STRING, HumanBase
+    🧬 Protein-truncating variants (PTVs)
+   
 
-💻 Commands
-🛠 VCF Preparation (Steps 1–13)
+### 1️⃣7️⃣ Convert VCF to TSV  
 
+- Use `transform_VCF.sh` to make data R-friendly  
+
+### 1️⃣8️⃣ Statistical Tests  
+
+- Apply Wilcoxon, Fisher, and t-tests  
+
+### 1️⃣9️⃣ Enrichment Analysis  
+
+- Use Enrichr, Enrichment Map, etc. for biological interpretation  
+
+### 2️⃣0️⃣ Network Analysis  
+
+- Visualize relationships with GeneMANIA, STRING, HumanBase  
+
+---
+
+## 💻 Command Summary  
+
+### 🔹 Run Full VCF Pipeline (Steps 1–13)  
+```bash
 sbatch SNV_all.sh
+```
 
-🔮 VEP Annotation
-
+### 🔹 Run VEP Annotation  
+```bash
 sbatch VEP_long.sh
 sbatch VEP_short.sh
+```
 
-🧠 GeneBe Annotation (Run Locally)
-
+### 🔹 Run GeneBe Annotation 
+```bash
 java -jar GeneBeClient-0.1.0-a.4.jar vcf annotate \
 --input-vcf ___.vcf.gz \
 --output-vcf try.vcf \
 --genome hg38 \
---api-key [KEY] \
---username [USERNAME]
+--api-key [YOUR_API_KEY] \
+--username [YOUR_USERNAME]
+```
+### 🔹 Filter Variants for Pathogenicity
 
-📄 VCF to TSV Conversion
+./filter_variants_for_pathogenicity.sh -i input.vcf.gz -o filtered_output.vcf.gz
 
-transform_VCF.sh -i path/to/your/filtered_file.vcf.gz
+### 🔹 Convert VCF to TSV  
+```bash
+transform_VCF.sh -i path/to/your_file.vcf.gz
+```
 
-Repeat the above for each relevant file:
+Examples:
+```bash
+transform_VCF.sh -i pred_PTV_VEP_filtered.vcf.gz
+transform_VCF.sh -i pred_patho_MPC_ALPHAMISSENSE_VEP_filtered.vcf.gz
+```
 
-    pred_PTV_VEP_filtered.vcf.gz
+### 🔹 Run Statistical Analyses  
+```r
+Rscript fisher_stat_scz_detail.r
+Rscript statistics_fisher_new_correct.r
+Rscript Statistics_fisher_scz_3_groups.r
+Rscript statistics_wilcoxon_SCZ_3_groups.r
+Rscript statistics_wilxocoxon_right.r
+Rscript statstics_wilcoxon_SCZ.r
+```
 
-    pred_PTV_pLI_VEP_filtered.vcf.gz
+### 🔹 Run Enrichment & Network Analysis  
+```r
+Rscript GENE_lists.r
+```
 
-    pred_patho_MPC_ALPHAMISSENSE_VEP_filtered.vcf.gz
+---
 
-    pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered.vcf.gz
+## 🎉 Final Thoughts  
 
-    pred_NON_patho_MPC_VEP_filtered.vcf.gz
+This pipeline gives you an end-to-end workflow for SNV analysis — from raw variants to deep biological insights. It’s optimized for clarity, reproducibility, and ease of use. We hope it saves you time and brings those variants to life! 💡🔬
 
-    pred_NON_patho_MPC_pLI_VEP_filtered.vcf.gz
+📫 Feel free to fork, contribute, or reach out with questions or ideas! 😊  
 
-📊 Statistical Analysis Scripts
+---
 
-    fisher_stat_scz_detail.r
-
-    statistics_fisher_new_correct.r
-
-    Statistics_fisher_scz_3_groups.r
-
-    statistics_wilcoxon_SCZ_3_groups.r
-
-    statistics_wilxocoxon_right.r
-
-    statstics_wilcoxon_SCZ.r
-
-✨ Enrichment & Network Scripts
-
-    GENE_lists.r
-
-🧡 Final Notes
-
-This pipeline is built with love, logic, and lots of bcftools. Whether you're identifying critical SNVs or just getting started in variant analysis — this guide has your back. Happy analyzing! 🧬✨
