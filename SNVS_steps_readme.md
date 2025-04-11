@@ -40,6 +40,7 @@ Make sure you have the following tools installed and available:
 - `transform_VCF.sh` script for VCF → TSV conversion 🔄  
 
 ---
+![ChatGPT Image Apr 11, 2025, 05_46_40 PM](https://github.com/user-attachments/assets/c4abfe56-6aca-4d4c-9ef5-e9de605a1a79)
 
 ## 🔍 SNV Processing Steps  
 
