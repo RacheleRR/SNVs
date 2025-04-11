@@ -86,7 +86,7 @@ This document outlines the step-by-step workflow for processing, annotating, and
 
 ### VCF Preparation (Step 1 - 13) (on server)
 ```bash
-sbatch SNV_all_modifed.sh
+sbatch SNV_all.sh
 ```
 
 ### VEP Annotation (on server)
@@ -97,7 +97,7 @@ sbatch VEP_short.sh
 
 ### GeneBe (on my local computer)
 ```bash
-java -jar GeneBeClient-0.1.0-a.4.jar vcf annotate --input-vcf pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered.vcf.gz --output-vcf try.vcf --genome hg38 --api-key ak-lIYIgqyez5moX9NUkADnekytk --username rubiu.1997351@studenti.uniroma1.it
+java -jar GeneBeClient-0.1.0-a.4.jar vcf annotate --input-vcf pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered.vcf.gz --output-vcf try.vcf --genome hg38 --api-key  --username 
 ```
 
 ### VCF to TSV
@@ -111,9 +111,13 @@ transform_VCF.sh -i /media/rachele/NAS_InfoGene/Rachele_Rubiu/final_vcf_to_csv/p
 ```
 
 ### Statistics
-- `#ALLA STATISTICS.r`
-- `#wilxoxonallrows.r`
-- `plots_snvs_statitics.r`
+- `fisher_stat_scz_detail.r
+- statistics_fisher_new_correct.r
+- Statistics_fisher_scz_3_groups.r
+- statistics_wilcoxon_SCZ_3_groups.r
+- statistics_wilxocoxon_right.r
+- statstics_wilcoxon_SCZ.r
+
 
 ### Enrichment and Network
 - `#GET GET NAMES.r`
