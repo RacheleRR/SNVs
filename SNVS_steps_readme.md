@@ -97,7 +97,7 @@ sbatch VEP_short.sh
 
 ### GeneBe (on my local computer)
 ```bash
-java -jar GeneBeClient-0.1.0-a.4.jar vcf annotate --input-vcf pred_patho_MPC_ALPHAMISSENSE_pLI_VEP_filtered.vcf.gz --output-vcf try.vcf --genome hg38 --api-key  --username 
+java -jar GeneBeClient-0.1.0-a.4.jar vcf annotate --input-vcf ___.vcf.gz --output-vcf try.vcf --genome hg38 --api-key  --username 
 ```
 
 ### VCF to TSV
@@ -120,5 +120,4 @@ transform_VCF.sh -i /media/rachele/NAS_InfoGene/Rachele_Rubiu/final_vcf_to_csv/p
 
 
 ### Enrichment and Network
-- `#GET GET NAMES.r`
-- `#GET GENE NAMES ASSOCIATES TO SCHIZO ETC.r`
+- `GENE_lists.r
