@@ -56,3 +56,5 @@ for input_file in "$input_dir"/rs_normalized_clean_merged_all_samples_chr*.vcf.g
 
     echo "Done with $input_file"
 done
+
+#add transcript_match=1 to         --plugin dbNSFP,/home/benjamin/NAS/InfoGene/Rachele/VEP_database/dbNSFP4.9/dbNSFP4.9a_grch38.gz  like so --plugin dbNSFP,transcript_match=1,/home/benjamin/NAS/InfoGene/Rachele/VEP_database/dbNSFP4.9/dbNSFP4.9a_grch38.gz,SIFT_score,
